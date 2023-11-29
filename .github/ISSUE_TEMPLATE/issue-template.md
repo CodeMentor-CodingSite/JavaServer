@@ -15,5 +15,8 @@ assignees: ''
 - [ ] feature_detail 1
 - [ ] feature_detail 2
 
+## 링크 프로젝트
+이슈 등록전, 오른쪽 Projects에서 Backlog와 연결 시키기
+
 ## 📖 참고 사항
 레퍼런스나 추가로 발생할 것으로 예상되는 이슈 작성 (ex. 아직 JWT 토큰 안만들어서 나중에 코드 추가해야함)
