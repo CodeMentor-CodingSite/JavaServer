@@ -12,7 +12,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class PythonScriptService {
+public class CodeExecutionService {
 
 
     @Value("${CodeExecutionServer.username}")
