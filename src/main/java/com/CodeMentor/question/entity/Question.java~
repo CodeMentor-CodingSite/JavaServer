@@ -32,6 +32,7 @@ public class Question {
     @Column(name = "question_memory", columnDefinition = "BIGINT")
     private Long memory;
 
+//    @Builder.Default
     @OneToMany(mappedBy = "question")
     private List<QuestionTestCase> questionTestCases;
 }

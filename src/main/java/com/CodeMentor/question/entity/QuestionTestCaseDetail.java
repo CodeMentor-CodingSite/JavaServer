@@ -26,9 +26,9 @@ public class QuestionTestCaseDetail {
     @JoinColumn(name = "code_exec_converter_id")
     private CodeExecConverter codeExecConverter;
 
-    @Column(name = "test_case_key", columnDefinition = "VARCHAR(100)")
+    @Column(name = "test_case_key", columnDefinition = "TEXT")
     private String key;
 
-    @Column(name = "test_case_value", columnDefinition = "VARCHAR(100)")
+    @Column(name = "test_case_value", columnDefinition = "TEXT")
     private String value;
 }

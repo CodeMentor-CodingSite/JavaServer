@@ -26,9 +26,9 @@ public class QuestionTestCase {
     @JoinColumn(name = "language_id")
     private Language language;
 
-    @Column(name = "is_example", columnDefinition = "TINYINT")
+    @Column(name = "is_example", columnDefinition = "TINYINT(1)")
     private Boolean isExample;
 
-    @Column(name = "explanation", columnDefinition = "VARCHAR(500)")
+    @Column(name = "explanation", columnDefinition = "TEXT")
     private String explanation;
 }

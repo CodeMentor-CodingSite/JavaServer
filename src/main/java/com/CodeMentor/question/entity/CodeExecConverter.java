@@ -31,6 +31,6 @@ public class CodeExecConverter {
     @Column(name = "output_type", columnDefinition = "VARCHAR(30)")
     private String outputType;
 
-    @Column(name = "method_name", columnDefinition = "VARCHAR(100)")
+    @Column(name = "method_name", columnDefinition = "TEXT")
     private String methodName;
 }

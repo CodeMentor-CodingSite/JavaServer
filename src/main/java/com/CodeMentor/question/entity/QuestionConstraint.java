@@ -11,24 +11,17 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "question_language")
-public class QuestionLanguage {
+@Table(name = "question_constraint")
+public class QuestionConstraint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "question_language_id")
+    @Column(name = "question_constraint_id")
     private Long id;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "question_id")
     private Question question;
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "language_id")
-    private Language language;
-
-    @Column(name = "question_init_content", columnDefinition = "TEXT")
-    private String initContnet;
-
-    @Column(name = "answer_check_content", columnDefinition = "TEXT")
-    private String checkContent;
+    @Column(name = "question_constraint_content", columnDefinition = "VARCHAR(50)")
+    private String content;
 }
