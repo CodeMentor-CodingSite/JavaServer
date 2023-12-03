@@ -19,22 +19,18 @@ public class CodeExecConverter {
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "question_id")
-    private Question question;
-
-    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "language_id")
     private Language language;
 
     @Column(name = "code_exec_converter_content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "input_type", columnDefinition = "VARCHAR(10)")
+    @Column(name = "input_type", columnDefinition = "VARCHAR(30)")
     private String inputType;
 
-    @Column(name = "output_type", columnDefinition = "VARCHAR(10)")
+    @Column(name = "output_type", columnDefinition = "VARCHAR(30)")
     private String outputType;
 
-    @Column(name = "method_name", columnDefinition = "VARCHAR(20)")
+    @Column(name = "method_name", columnDefinition = "VARCHAR(100)")
     private String methodName;
 }
