@@ -84,7 +84,7 @@ public class JavaCodeService {
         }
 
         // 사용자 코드 실행 및 정답 비교를 위한 코드
-        finalCode.append("        ").append(questionLanguage.getContent()).append("\n")
+        finalCode.append("        ").append(questionLanguage.getCheckContent()).append("\n")
                 .append("    }\n")
                 .append("}\n\n");
 
