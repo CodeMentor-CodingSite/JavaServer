@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class CodeExecutionService {
@@ -25,11 +27,31 @@ public class CodeExecutionService {
     private String PRIVATE_KEY_PATH;
 
 
-    public String executePythonScript(String pythonScript) {
-        System.out.println(USERNAME);
-        System.out.println(HOST);
-        System.out.println(PORT);
-        System.out.println(PRIVATE_KEY_PATH);
+    public String executePythonScript(int questionId, String pythonScript) {
+
+        // Todo : questionId를 통해, DB에서 값 가져오기
+        String codeExecConverterContent = "converting_code";
+        String testCaseKey = "test_case_key";
+        String testCaseValue = "test_case_value";
+
+        // Todo : 테스트 후 삭제
+        ArrayList<String> testCaseKeyList = new ArrayList<>();
+        testCaseKeyList.add("nums");
+        testCaseKeyList.add("target");
+        testCaseKeyList.add("answer");
+        ArrayList<String> testCaseValueList = new ArrayList<>();
+        testCaseValueList.add("[2,7,11,15]");
+        testCaseValueList.add("9");
+        testCaseValueList.add("[0,1]");
+
+        //Add test case
+        for (int i = 0; i < testCaseKeyList.size(); i++) {
+            pythonScript = pythonScript + "\n" + testCaseKeyList.get(i) + " = " + testCaseValueList.get(i);
+        }
+
+
+        pythonScript = pythonScript + "\n" + "print(answer == Solution().twoSum(nums, target))";
+
 
         JSch jsch = new JSch();
         Session session = null;
