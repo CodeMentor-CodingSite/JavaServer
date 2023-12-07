@@ -40,3 +40,4 @@ out/
 /main/resources/application.yaml
 /main/resources/application-dev.yaml
 /main/resources/application-local.yaml
+src/main/resources/

@@ -4,6 +4,8 @@ import lombok.*;
 
 import javax.persistence.*;
 
+import java.util.List;
+
 import static javax.persistence.FetchType.LAZY;
 
 @Entity
@@ -25,12 +27,12 @@ public class CodeExecConverter {
     @Column(name = "code_exec_converter_content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "input_type", columnDefinition = "VARCHAR(30)")
-    private String inputType;
-
-    @Column(name = "output_type", columnDefinition = "VARCHAR(30)")
-    private String outputType;
+    @Column(name = "return_type", columnDefinition = "VARCHAR(30)")
+    private String returnType;
 
     @Column(name = "method_name", columnDefinition = "TEXT")
     private String methodName;
+
+    @OneToMany(mappedBy = "codeExecConverter")
+    private List<ConverterMap> converterMaps;
 }

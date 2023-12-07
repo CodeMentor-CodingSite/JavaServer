@@ -4,6 +4,8 @@ import lombok.*;
 
 import javax.persistence.*;
 
+import java.util.List;
+
 import static javax.persistence.FetchType.LAZY;
 
 @Entity
@@ -22,13 +24,12 @@ public class QuestionTestCase {
     @JoinColumn(name = "question_id")
     private Question question;
 
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "language_id")
-    private Language language;
-
     @Column(name = "is_example", columnDefinition = "TINYINT(1)")
     private Boolean isExample;
 
     @Column(name = "explanation", columnDefinition = "TEXT")
     private String explanation;
+
+    @OneToMany(mappedBy = "questionTestCase")
+    private List<QuestionTestCaseDetail> questionTestCaseDetails;
 }

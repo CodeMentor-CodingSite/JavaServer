@@ -2,8 +2,11 @@ package com.CodeMentor.question.repository;
 
 
 import com.CodeMentor.question.entity.CodeExecConverter;
+import com.CodeMentor.question.entity.Language;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CodeExecConverterRepository extends JpaRepository<CodeExecConverter, Long> {
+import java.util.Optional;
 
+public interface CodeExecConverterRepository extends JpaRepository<CodeExecConverter, Long> {
+    Optional<CodeExecConverter> findAllByIdAndLanguage(Long Id, Language language);
 }
