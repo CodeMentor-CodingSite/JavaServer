@@ -3,6 +3,7 @@ package com.CodeMentor.question.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -18,4 +19,10 @@ public class Language {
 
     @Column(name = "language_type", columnDefinition = "VARCHAR(10)")
     private String type;
+
+    @OneToMany(mappedBy = "language")
+    private List<QuestionLanguage> questionLanguages;
+
+    @OneToMany(mappedBy = "language")
+    private List<CodeExecConverter> codeExecConverters;
 }
