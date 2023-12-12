@@ -1,6 +1,6 @@
 package com.CodeMentor.code.service;
 
-import com.CodeMentor.code.dto.JavaCodeDTO;
+import com.CodeMentor.code.dto.UserCodeRequest;
 import com.CodeMentor.question.entity.*;
 import com.CodeMentor.question.repository.*;
 import com.jcraft.jsch.*;
@@ -37,7 +37,7 @@ public class JavaCodeService {
     private final CodeExecConverterRepository codeExecConverterRepository;
     private final ConverterMapRepository converterMapRepository;
 
-    public Map<Integer, String> post(JavaCodeDTO codeDTO) {
+    public Map<Integer, String> post(UserCodeRequest codeDTO) {
         // ssh 세션 성립
         if (session == null || !session.isConnected()) {
             sshSessionOpen();

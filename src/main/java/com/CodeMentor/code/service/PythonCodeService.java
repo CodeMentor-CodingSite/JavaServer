@@ -1,8 +1,19 @@
-package com.CodeMentor.service;
+package com.CodeMentor.code.service;
 
+import com.CodeMentor.code.dto.UserCodeRequest;
+import com.CodeMentor.question.entity.Language;
+import com.CodeMentor.question.entity.Question;
+import com.CodeMentor.question.entity.QuestionTestCase;
+import com.CodeMentor.question.repository.LanguageRepository;
+import com.CodeMentor.question.repository.QuestionLanguageRepository;
+import com.CodeMentor.question.repository.QuestionRepository;
+import com.CodeMentor.question.repository.QuestionTestCaseRepository;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CodeExecutionService {
+@RequiredArgsConstructor
+public class PythonCodeService {
 
+    private final QuestionRepository questionRepository;
+    private final QuestionTestCaseRepository questionTestCaseRepository;
+    private final QuestionLanguageRepository questionLanguageRepository;
+    private final LanguageRepository languageRepository;
 
     @Value("${CodeExecutionServer.username}")
     private String USERNAME;
@@ -27,32 +43,38 @@ public class CodeExecutionService {
     private String PRIVATE_KEY_PATH;
 
 
-    public String executePythonScript(int questionId, String pythonScript) {
+    public ArrayList<String> executePythonScript(UserCodeRequest request) throws Exception {
 
-        // Todo : questionId를 통해, DB에서 값 가져오기
-        String codeExecConverterContent = "converting_code";
-        String testCaseKey = "test_case_key";
-        String testCaseValue = "test_case_value";
+        ArrayList<String> testCaseResults = new ArrayList<>();
 
-        // Todo : 테스트 후 삭제
-        ArrayList<String> testCaseKeyList = new ArrayList<>();
-        testCaseKeyList.add("nums");
-        testCaseKeyList.add("target");
-        testCaseKeyList.add("answer");
-        ArrayList<String> testCaseValueList = new ArrayList<>();
-        testCaseValueList.add("[2,7,11,15]");
-        testCaseValueList.add("9");
-        testCaseValueList.add("[0,1]");
+        int questionId = request.getQuestionId();
+        String pythonScript = request.getUserCode();
+        String language = request.getLanguage();
 
-        //Add test case
-        for (int i = 0; i < testCaseKeyList.size(); i++) {
-            pythonScript = pythonScript + "\n" + testCaseKeyList.get(i) + " = " + testCaseValueList.get(i);
+        Question question = questionRepository.findById((long) questionId).orElseThrow();
+        List<QuestionTestCase> questionTestCases = questionTestCaseRepository.findByQuestion(question);
+        Language languageEntity = languageRepository.findByType(language).orElseThrow();
+        String answerCheck = questionLanguageRepository.findByQuestionAndLanguage(question, languageEntity).orElseThrow().getCheckContent();
+
+        for (QuestionTestCase questionTestCase : questionTestCases) {
+            String testCasePythonScript = pythonScript;
+            ArrayList<String> testCaseKeyList = new ArrayList<>();
+            ArrayList<String> testCaseValueList = new ArrayList<>();
+            for (int i = 0; i < questionTestCase.getQuestionTestCaseDetails().size(); i++) {
+                testCaseKeyList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getKey());
+                testCaseValueList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getValue());
+                testCasePythonScript = testCasePythonScript + "\n" + testCaseKeyList.get(i) + " = " + testCaseValueList.get(i);
+            }
+
+            testCasePythonScript = testCasePythonScript + "\n" + answerCheck;
+
+            testCaseResults.add(sendPythonScript(testCasePythonScript));
         }
 
+        return testCaseResults;
+    }
 
-        pythonScript = pythonScript + "\n" + "print(answer == Solution().twoSum(nums, target))";
-
-
+    public String sendPythonScript(String pythonScript) throws Exception {
         JSch jsch = new JSch();
         Session session = null;
         ChannelExec channel = null;
