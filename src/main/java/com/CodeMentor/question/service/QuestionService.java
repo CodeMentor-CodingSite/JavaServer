@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
@@ -24,6 +26,8 @@ public class QuestionService {
     private final QuestionTestCaseDetailRepository questionTestCaseDetailRepository;
     private final CodeExecConverterRepository codeExecConverterRepository;
     private final QuestionConstraintRepository questionConstraintRepository;
+
+    private final ConverterMapRepository converterMapRepository;
 
     public Integer questionInput(QuestionInputRequest request) {
         Question question = Question.builder()
@@ -54,12 +58,24 @@ public class QuestionService {
                 .build();
         QuestionTestCase questionTestCaseResponse = questionTestCaseRepository.save(questionTestCase);
 
+        // 각 TestCaseDetail에 ConverterMap 저장
         for (int i = 0; i < request.getTestCaseDetailDTOs().size(); i++) {
             QuestionTestCaseDetail questionTestCaseDetail = QuestionTestCaseDetail.builder()
                     .questionTestCase(questionTestCaseResponse)
                     .key(request.getTestCaseDetailDTOs().get(i).getTestCaseKey())
                     .value(request.getTestCaseDetailDTOs().get(i).getTestCaseValue())
                     .build();
+            ArrayList<Integer> converterIds = request.getTestCaseDetailDTOs().get(i).getConverterIds();
+
+            // 각 TestCaseDetailId와 ConverterId를 ConverterMap에 저장
+            for (int j = 0; j < converterIds.size(); j++) {
+                CodeExecConverter codeExecConverter = codeExecConverterRepository.findById((long) converterIds.get(j)).orElseThrow();
+                ConverterMap converterMap = ConverterMap.builder()
+                        .questionTestCaseDetail(questionTestCaseDetail)
+                        .codeExecConverter(codeExecConverter)
+                        .build();
+                converterMapRepository.save(converterMap);
+            }
             questionTestCaseDetailRepository.save(questionTestCaseDetail);
         }
 
