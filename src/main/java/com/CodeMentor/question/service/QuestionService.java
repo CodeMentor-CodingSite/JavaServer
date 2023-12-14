@@ -24,7 +24,7 @@ public class QuestionService {
     private final QuestionTestCaseDetailRepository questionTestCaseDetailRepository;
     private final CodeExecConverterRepository codeExecConverterRepository;
     private final QuestionConstraintRepository questionConstraintRepository;
-
+    private final ConverterMapRepository converterMapRepository;
     public Integer questionInput(QuestionInputRequest request) {
         Question question = Question.builder()
                 .title(request.getQuestionTitle())
