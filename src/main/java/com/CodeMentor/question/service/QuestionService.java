@@ -26,7 +26,6 @@ public class QuestionService {
     private final QuestionTestCaseDetailRepository questionTestCaseDetailRepository;
     private final CodeExecConverterRepository codeExecConverterRepository;
     private final QuestionConstraintRepository questionConstraintRepository;
-
     private final ConverterMapRepository converterMapRepository;
 
     public Integer questionInput(QuestionInputRequest request) {
@@ -65,18 +64,19 @@ public class QuestionService {
                     .key(request.getTestCaseDetailDTOs().get(i).getTestCaseKey())
                     .value(request.getTestCaseDetailDTOs().get(i).getTestCaseValue())
                     .build();
+            questionTestCaseDetailRepository.save(questionTestCaseDetail);
+
             ArrayList<Integer> converterIds = request.getTestCaseDetailDTOs().get(i).getConverterIds();
 
             // 각 TestCaseDetailId와 ConverterId를 ConverterMap에 저장
-            for (int j = 0; j < converterIds.size(); j++) {
-                CodeExecConverter codeExecConverter = codeExecConverterRepository.findById((long) converterIds.get(j)).orElseThrow();
+            for (Integer converterId : converterIds) {
+                CodeExecConverter codeExecConverter = codeExecConverterRepository.findById((long) converterId).orElseThrow();
                 ConverterMap converterMap = ConverterMap.builder()
                         .questionTestCaseDetail(questionTestCaseDetail)
                         .codeExecConverter(codeExecConverter)
                         .build();
                 converterMapRepository.save(converterMap);
             }
-            questionTestCaseDetailRepository.save(questionTestCaseDetail);
         }
 
         return questionTestCaseResponse.getId().intValue();
