@@ -30,7 +30,6 @@ public class QuestionService {
     private final ConverterMapRepository converterMapRepository;
 
     @Transactional
-    private final ConverterMapRepository converterMapRepository;
     public Integer questionInput(QuestionInputRequest request) {
         Question question = Question.builder()
                 .title(request.getQuestionTitle())

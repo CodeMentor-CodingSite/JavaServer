@@ -51,7 +51,9 @@ public class PythonCodeService {
         Question question = questionRepository.findById((long) questionId).orElseThrow();
         List<QuestionTestCase> questionTestCases = questionTestCaseRepository.findByQuestion(question);
         Language languageEntity = languageRepository.findByType(language).orElseThrow();
+
         String answerCheck = questionLanguageRepository.findByQuestionAndLanguage(question, languageEntity).orElseThrow().getCheckContent();
+
 
         //각 TestCases 마다
         for (QuestionTestCase questionTestCase : questionTestCases) {
@@ -64,35 +66,37 @@ public class PythonCodeService {
                 testCaseKeyList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getKey());
                 testCaseValueList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getValue());
 
-                List<ConverterMap> allLanguageConverters = converterMapRepository.findAllByQuestionTestCaseDetail(
-                        questionTestCase.getQuestionTestCaseDetails().get(i));
+                List<ConverterMap> allLanguageConverters = questionTestCase.getQuestionTestCaseDetails().get(i).getConverterMaps();
 
                 // key에 따른 converterContent, converterMethodName 가져오기
                 String converterContent = "";
                 String converterMethodName = "";
-                Long languageId = 2L; // Assuming language_id is of type Long
+                Long languageId = 2L; // Python
                 for (ConverterMap converterMap : allLanguageConverters) {
                     CodeExecConverter converter = converterMap.getCodeExecConverter(); // Assuming the method to get code_exec_converter_id
-                    if (converter.getLanguage().equals(languageId)) {
+                    if (converter.getLanguage().getId().equals(languageId)) {
                         converterContent = converter.getContent();
                         converterMethodName = converter.getMethodName();
                         break;
                     }
                 }
+
                 // 스크립트에 convert content 추가
                 testCasePythonScript = testCasePythonScript + "\n" + converterContent;
-                // 변수를 convert content를 통해 변환
-                testCasePythonScript = testCasePythonScript + "\n" + testCaseKeyList.get(i) + " = " + converterMethodName + "(" + testCaseKeyList.get(i) + ")";
 
                 testCasePythonScript = testCasePythonScript + "\n" + testCaseKeyList.get(i) + " = " + testCaseValueList.get(i);
 
+                // 변수를 convert content를 통해 변환
+                if (!converterMethodName.equals("")){
+                    testCasePythonScript = testCasePythonScript + "\n" + testCaseKeyList.get(i) + " = " + converterMethodName + "(" + testCaseKeyList.get(i) + ")";
+                }
             }
 
             testCasePythonScript = testCasePythonScript + "\n" + answerCheck;
 
+            System.out.println(testCasePythonScript);
             testCaseResults.add(sendPythonScript(testCasePythonScript));
         }
-
         return testCaseResults;
     }
 
