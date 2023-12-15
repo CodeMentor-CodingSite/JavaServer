@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 
 @Service
@@ -28,6 +29,7 @@ public class QuestionService {
     private final QuestionConstraintRepository questionConstraintRepository;
     private final ConverterMapRepository converterMapRepository;
 
+    @Transactional
     public Integer questionInput(QuestionInputRequest request) {
         Question question = Question.builder()
                 .title(request.getQuestionTitle())
@@ -47,6 +49,7 @@ public class QuestionService {
         return response.getId().intValue();
     }
 
+    @Transactional
     public Integer testCaseInput(TestCaseRequest request) {
         Question question = questionRepository.findById((long) request.getQuestionId()).orElseThrow();
 
@@ -82,6 +85,7 @@ public class QuestionService {
         return questionTestCaseResponse.getId().intValue();
     }
 
+    @Transactional
     public Integer converterInput(ConverterInputRequest request) {
         Language languageEntity = languageRepository.findByType(request.getLanguageType()).orElseThrow();
 
@@ -96,6 +100,7 @@ public class QuestionService {
         return response.getId().intValue();
     }
 
+    @Transactional
     public Integer questionCodeInput(QuestionCodeInputRequest request) {
         Question question = questionRepository.findById((long)request.getQuestionId()).orElseThrow();
         Language language = languageRepository.findByType(request.getLanguageType()).orElseThrow();
