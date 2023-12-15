@@ -2,6 +2,8 @@ package com.CodeMentor.question.dto;
 
 import lombok.*;
 
+import java.util.ArrayList;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -11,4 +13,5 @@ public class TestCaseDetailDTO {
 
     private String testCaseKey;
     private String testCaseValue;
+    private ArrayList<Integer> converterIds;
 }

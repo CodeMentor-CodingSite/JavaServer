@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.util.ArrayList;
+
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
@@ -24,7 +27,9 @@ public class QuestionService {
     private final QuestionTestCaseDetailRepository questionTestCaseDetailRepository;
     private final CodeExecConverterRepository codeExecConverterRepository;
     private final QuestionConstraintRepository questionConstraintRepository;
+    private final ConverterMapRepository converterMapRepository;
 
+    @Transactional
     public Integer questionInput(QuestionInputRequest request) {
         Question question = Question.builder()
                 .title(request.getQuestionTitle())
@@ -44,6 +49,7 @@ public class QuestionService {
         return response.getId().intValue();
     }
 
+    @Transactional
     public Integer testCaseInput(TestCaseRequest request) {
         Question question = questionRepository.findById((long) request.getQuestionId()).orElseThrow();
 
@@ -54,6 +60,7 @@ public class QuestionService {
                 .build();
         QuestionTestCase questionTestCaseResponse = questionTestCaseRepository.save(questionTestCase);
 
+        // 각 TestCaseDetail에 ConverterMap 저장
         for (int i = 0; i < request.getTestCaseDetailDTOs().size(); i++) {
             QuestionTestCaseDetail questionTestCaseDetail = QuestionTestCaseDetail.builder()
                     .questionTestCase(questionTestCaseResponse)
@@ -61,11 +68,24 @@ public class QuestionService {
                     .value(request.getTestCaseDetailDTOs().get(i).getTestCaseValue())
                     .build();
             questionTestCaseDetailRepository.save(questionTestCaseDetail);
+
+            ArrayList<Integer> converterIds = request.getTestCaseDetailDTOs().get(i).getConverterIds();
+
+            // 각 TestCaseDetailId와 ConverterId를 ConverterMap에 저장
+            for (Integer converterId : converterIds) {
+                CodeExecConverter codeExecConverter = codeExecConverterRepository.findById((long) converterId).orElseThrow();
+                ConverterMap converterMap = ConverterMap.builder()
+                        .questionTestCaseDetail(questionTestCaseDetail)
+                        .codeExecConverter(codeExecConverter)
+                        .build();
+                converterMapRepository.save(converterMap);
+            }
         }
 
         return questionTestCaseResponse.getId().intValue();
     }
 
+    @Transactional
     public Integer converterInput(ConverterInputRequest request) {
         Language languageEntity = languageRepository.findByType(request.getLanguageType()).orElseThrow();
 
@@ -80,6 +100,7 @@ public class QuestionService {
         return response.getId().intValue();
     }
 
+    @Transactional
     public Integer questionCodeInput(QuestionCodeInputRequest request) {
         Question question = questionRepository.findById((long)request.getQuestionId()).orElseThrow();
         Language language = languageRepository.findByType(request.getLanguageType()).orElseThrow();
