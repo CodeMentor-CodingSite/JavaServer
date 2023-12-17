@@ -1,13 +1,8 @@
 package com.CodeMentor.code.service;
 
 import com.CodeMentor.code.dto.UserCodeRequest;
-import com.CodeMentor.question.entity.Language;
-import com.CodeMentor.question.entity.Question;
-import com.CodeMentor.question.entity.QuestionTestCase;
-import com.CodeMentor.question.repository.LanguageRepository;
-import com.CodeMentor.question.repository.QuestionLanguageRepository;
-import com.CodeMentor.question.repository.QuestionRepository;
-import com.CodeMentor.question.repository.QuestionTestCaseRepository;
+import com.CodeMentor.question.entity.*;
+import com.CodeMentor.question.repository.*;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
@@ -32,6 +27,8 @@ public class PythonCodeService {
     private final QuestionTestCaseRepository questionTestCaseRepository;
     private final QuestionLanguageRepository questionLanguageRepository;
     private final LanguageRepository languageRepository;
+    private final CodeExecConverterRepository codeExecConverterRepository;
+    private final ConverterMapRepository converterMapRepository;
 
     @Value("${CodeExecutionServer.username}")
     private String USERNAME;
@@ -54,23 +51,52 @@ public class PythonCodeService {
         Question question = questionRepository.findById((long) questionId).orElseThrow();
         List<QuestionTestCase> questionTestCases = questionTestCaseRepository.findByQuestion(question);
         Language languageEntity = languageRepository.findByType(language).orElseThrow();
+
         String answerCheck = questionLanguageRepository.findByQuestionAndLanguage(question, languageEntity).orElseThrow().getCheckContent();
 
+
+        //각 TestCases 마다
         for (QuestionTestCase questionTestCase : questionTestCases) {
             String testCasePythonScript = pythonScript;
             ArrayList<String> testCaseKeyList = new ArrayList<>();
             ArrayList<String> testCaseValueList = new ArrayList<>();
+
+            //각 TestCasesDetail 마다
             for (int i = 0; i < questionTestCase.getQuestionTestCaseDetails().size(); i++) {
                 testCaseKeyList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getKey());
                 testCaseValueList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getValue());
+
+                List<ConverterMap> allLanguageConverters = questionTestCase.getQuestionTestCaseDetails().get(i).getConverterMaps();
+
+                // key에 따른 converterContent, converterMethodName 가져오기
+                String converterContent = "";
+                String converterMethodName = "";
+                Long languageId = 2L; // Python
+                for (ConverterMap converterMap : allLanguageConverters) {
+                    CodeExecConverter converter = converterMap.getCodeExecConverter(); // Assuming the method to get code_exec_converter_id
+                    if (converter.getLanguage().getId().equals(languageId)) {
+                        converterContent = converter.getContent();
+                        converterMethodName = converter.getMethodName();
+                        break;
+                    }
+                }
+
+                // 스크립트에 convert content 추가
+                testCasePythonScript = testCasePythonScript + "\n" + converterContent;
+
                 testCasePythonScript = testCasePythonScript + "\n" + testCaseKeyList.get(i) + " = " + testCaseValueList.get(i);
+
+                // 변수를 convert content를 통해 변환
+                if (!converterMethodName.equals("")){
+                    testCasePythonScript = testCasePythonScript + "\n" + testCaseKeyList.get(i) + " = " + converterMethodName + "(" + testCaseKeyList.get(i) + ")";
+                }
             }
 
             testCasePythonScript = testCasePythonScript + "\n" + answerCheck;
 
+            System.out.println(testCasePythonScript);
             testCaseResults.add(sendPythonScript(testCasePythonScript));
         }
-
         return testCaseResults;
     }
 
