@@ -64,7 +64,10 @@ public class PythonCodeService {
             //각 TestCasesDetail 마다
             for (int i = 0; i < questionTestCase.getQuestionTestCaseDetails().size(); i++) {
                 testCaseKeyList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getKey());
-                testCaseValueList.add(questionTestCase.getQuestionTestCaseDetails().get(i).getValue());
+
+                //'null' 문자열을 'None'으로 변환
+                String convertedValue = questionTestCase.getQuestionTestCaseDetails().get(i).getValue().replace("null", "None");
+                testCaseValueList.add(convertedValue);
 
                 List<ConverterMap> allLanguageConverters = questionTestCase.getQuestionTestCaseDetails().get(i).getConverterMaps();
 
