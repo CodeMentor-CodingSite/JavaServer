@@ -1,6 +1,6 @@
 package com.CodeMentor.code.service;
 
-import com.CodeMentor.code.dto.JavaCodeDTO;
+import com.CodeMentor.code.dto.UserCodeRequest;
 import com.CodeMentor.question.entity.*;
 import com.CodeMentor.question.repository.*;
 import com.jcraft.jsch.*;
@@ -29,15 +29,15 @@ public class JavaCodeService {
     private int PORT;
     private static Session session;
     private static Channel channel;
-
     private final QuestionRepository questionRepository;
     private final LanguageRepository languageRepository;
     private final QuestionLanguageRepository questionLanguageRepository;
     private final QuestionTestCaseRepository questionTestCaseRepository;
     private final QuestionTestCaseDetailRepository questionTestCaseDetailRepository;
     private final CodeExecConverterRepository codeExecConverterRepository;
+    private final ConverterMapRepository converterMapRepository;
 
-    public Map<Integer, String> post(JavaCodeDTO codeDTO) {
+    public Map<Integer, String> post(UserCodeRequest codeDTO) {
         // ssh 세션 성립
         if (session == null || !session.isConnected()) {
             sshSessionOpen();
@@ -50,7 +50,7 @@ public class JavaCodeService {
         Language language = languageRepository.findByType(codeDTO.getLanguage()).orElseThrow();
         QuestionLanguage questionLanguage = questionLanguageRepository.findByQuestionAndLanguage(question, language).orElseThrow();
 
-        List<QuestionTestCase> questionTestCases = questionTestCaseRepository.findByQuestionAndLanguage(question, language);
+        List<QuestionTestCase> questionTestCases = questionTestCaseRepository.findByQuestion(question);
         int testCaseIndex = 1;
         for (QuestionTestCase questionTestCase : questionTestCases) {
             String finalCode = createJavaCode(codeDTO.getUserCode(), question, language, questionLanguage, questionTestCase);
@@ -66,10 +66,22 @@ public class JavaCodeService {
 
         List<QuestionTestCaseDetail> questionTestCaseDetails = questionTestCaseDetailRepository.findByQuestionTestCase(questionTestCase);
 
-        // TestCase 각 변수 String to 자료구조를 위한 코드 추가 (Converter Method 중복 방지를 위해 Set 사용)
-        Set<Long> converterIdSet = questionTestCaseDetails.stream().map(key -> key.getCodeExecConverter().getId()).collect(Collectors.toSet());
-        for (long converterId : converterIdSet) {
-            createConverterCode(finalCode, converterId);
+        Set<Long> converterIdSet = new HashSet<>();
+        for (QuestionTestCaseDetail questionTestCaseDetail : questionTestCaseDetails) {
+            converterIdSet.addAll(converterMapRepository.findAllByQuestionTestCaseDetail(questionTestCaseDetail).stream()
+                    .map(i -> i.getCodeExecConverter().getId())
+                    .collect(Collectors.toSet()));
+        }
+
+        // TestCase 각 변수의 컨버터 코드 추가 (Converter Method 중복 방지를 위해 Set 사용)
+        Set<CodeExecConverter> codeExecConverters = converterIdSet.stream()
+                .map(i -> codeExecConverterRepository.findAllByIdAndLanguage(i, language))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+
+        for (CodeExecConverter codeExecConverter : codeExecConverters) {
+            createConverterCode(finalCode, codeExecConverter);
         }
 
         // RealMain -> main
@@ -80,7 +92,7 @@ public class JavaCodeService {
 
         // TestCase 환경에 맞는 변수 코드 추가
         for (QuestionTestCaseDetail questionTestCaseDetail : questionTestCaseDetails) {
-            createParameterCode(finalCode, questionTestCaseDetail);
+            createParameterCode(finalCode, questionTestCaseDetail, language);
         }
 
         // 사용자 코드 실행 및 정답 비교를 위한 코드
@@ -89,23 +101,28 @@ public class JavaCodeService {
                 .append("}\n\n");
 
         // 시간 및 메모리 제약조건에 맞게 Java 실행
-        finalCode.append(userCode).append("' > RealMain.java && javac RealMain.java && timeout -s 9 ")
-                .append(question.getTime()).append("s java -Xmx")
-                .append(question.getMemory()).append("m RealMain");
+        finalCode.append(userCode).append("' > RealMain.java && javac RealMain.java && timeout -s 9 5s java -Xmx128m RealMain");
 
         return finalCode.toString();
     }
 
-    public void createConverterCode(StringBuilder javaCode, long converterId) {
-        CodeExecConverter codeExecConverter = codeExecConverterRepository.findById(converterId).orElseThrow();
-
+    public void createConverterCode(StringBuilder javaCode, CodeExecConverter codeExecConverter) {
         javaCode.append(codeExecConverter.getContent()).append("\n\n");
     }
 
-    public void createParameterCode(StringBuilder javaCode, QuestionTestCaseDetail questionTestCaseDetail) {
-        CodeExecConverter codeExecConverter = questionTestCaseDetail.getCodeExecConverter();
+    public void createParameterCode(StringBuilder javaCode, QuestionTestCaseDetail questionTestCaseDetail, Language language) {
+        List<Long> converterIdList = questionTestCaseDetail.getConverterMaps().stream()
+                .map(i -> i.getCodeExecConverter().getId())
+                .collect(Collectors.toList());
 
-        javaCode.append("        ").append(codeExecConverter.getOutputType()).append(" ")
+        CodeExecConverter codeExecConverter = converterIdList.stream()
+                .map(i -> codeExecConverterRepository.findAllByIdAndLanguage(i, language))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst()
+                .orElse(null);
+
+        javaCode.append("        ").append(codeExecConverter.getReturnType()).append(" ")
                 .append(questionTestCaseDetail.getKey()).append(" = ")
                 .append(codeExecConverter.getMethodName()).append("(\"")
                 .append(questionTestCaseDetail.getValue()).append("\");\n");

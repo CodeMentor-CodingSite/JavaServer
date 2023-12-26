@@ -26,12 +26,12 @@ public class Question {
     @Column(name = "question_category", columnDefinition = "VARCHAR(40)")
     private String category;
 
-    @Column(name = "question_time", columnDefinition = "BIGINT")
-    private Long time;
-
-    @Column(name = "question_memory", columnDefinition = "BIGINT")
-    private Long memory;
-
     @OneToMany(mappedBy = "question")
     private List<QuestionTestCase> questionTestCases;
+
+    @OneToMany(mappedBy = "question")
+    private List<QuestionConstraint> questionConstraints;
+
+    @OneToMany(mappedBy = "question")
+    private List<QuestionLanguage> questionLanguages;
 }

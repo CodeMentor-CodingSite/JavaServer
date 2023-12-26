@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class JavaCodeDTO {
+public class UserCodeRequest {
     private String userCode;
     private int questionId;
     private String language;

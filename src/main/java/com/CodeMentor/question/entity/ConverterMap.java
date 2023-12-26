@@ -11,17 +11,18 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "question_constraint")
-public class QuestionConstraint {
+@Table(name = "converter_map")
+public class ConverterMap {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "question_constraint_id")
+    @Column(name = "converter_map_id")
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "question_id")
-    private Question question;
+    @JoinColumn(name = "code_exec_converter_id")
+    private CodeExecConverter codeExecConverter;
 
-    @Column(name = "question_constraint_content", columnDefinition = "VARCHAR(100)")
-    private String content;
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "question_test_case_detail_id")
+    private QuestionTestCaseDetail questionTestCaseDetail;
 }
